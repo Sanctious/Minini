@@ -1,52 +1,52 @@
 package sanctious.minini.View;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.rafaskoberg.gdx.typinglabel.TypingLabel;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import de.eskalon.commons.screen.ManagedScreen;
-import jdk.vm.ci.code.Register;
-import sanctious.minini.Controllers.RegisterMenuController;
+import de.eskalon.commons.screen.transition.impl.BlendingTransition;
+import sanctious.minini.Controllers.Controllers;
+import sanctious.minini.GameMain;
 import sanctious.minini.Models.ViewResult;
 
 public class RegisterMenuScreen extends ManagedScreen {
 
-    private final Stage ui = new Stage(new ExtendViewport(1920, 1080));
-    Skin skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+    private final Stage ui = new Stage(new ScreenViewport());
+    private final Skin skin = new Skin(Gdx.files.internal("ui/neonui/neon-ui.json"));
 
     private float delay = 1.2f;
+    private boolean sceneSwitched;
 
     private TypingLabel label;
-
     private TextField usernameField;
     private TextField passwordField;
+    private TextField securityQuestionField;
+    private SelectBox<String> securityQuestions;
     private TextButton registerButton;
-    private Dialog popup;
-
-
-    private boolean sceneSwitched;
+    private TextButton gotoLoginMenuButton;
+    private TextButton registerAsGuestButton;
 
     public RegisterMenuScreen() {
         super();
         addInputProcessor(ui);
-
         setupUi();
     }
-
 
     private void setupUi() {
         Table root = new Table();
         root.setFillParent(true);
-
-        popup = new Dialog("State:", skin);
-        root.add(popup);
+        root.center();
 
         label = new TypingLabel("{EASE}{SPEED=SLOWER}Glad that you arrived!{SPEED}\n" +
             "{ENDEASE}{COLOR=#743f39}Firebread{CLEARCOLOR} and {COLOR=#0095e9}Icebread{CLEARCOLOR} need your {RAINBOW}help!{ENDRAINBOW}\n" +
@@ -56,36 +56,97 @@ public class RegisterMenuScreen extends ManagedScreen {
             "{SPEED=SLOW}{SLIDE}save them please!{ENDSLIDE}{SPEED}\n\n" +
             "Ps. {JUMP}Jump{ENDJUMP} onto enemy souls to destroy them!{WAIT=5} ", skin);
 
-
         usernameField = new TextField("", skin);
         usernameField.setMessageText("Enter username");
+
         passwordField = new TextField("", skin);
         passwordField.setMessageText("Enter password");
-        registerButton = new TextButton("test", skin);
 
+        securityQuestionField = new TextField("", skin);
+        securityQuestionField.setMessageText("Answer");
+
+        securityQuestions = new SelectBox<>(skin);
+        securityQuestions.setItems(
+            "1. What is your pet's name?",
+            "2. What is your wife's address?",
+            "3. Nuclear launch code"
+        );
+
+        registerButton = new TextButton("Register", skin);
         registerButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ViewResult result = RegisterMenuController.register(usernameField.getText(), passwordField.getText());
-                label.restart();
-                label.setText("{EASE}{SPEED=SLOWER}" + result.getMessage());
+                ViewResult<Void> result = Controllers.getRegisterController().register(
+                    usernameField.getText(), passwordField.getText());
+                if (!result.isSuccess()) {
+                    label.restart();
+                    label.setText("{EASE}{SPEED=8}{COLOR=#FF0000}" + result.getMessage());
+                } else {
+                    GameMain gameMain = GameMain.getInstance();
+                    gameMain.getScreenManager().pushScreen(
+                        new MainMenuScreen(),
+                        new BlendingTransition(gameMain.getSpriteBatch(), 1F, Interpolation.pow2In)
+                    );
+                }
             }
         });
 
-        root.add(label).top().left().expand().padLeft(10).padTop(10);
-        root.add(registerButton).top().left().expand().padLeft(10).padTop(32);
-        root.add(usernameField).top().left();
-        root.add(passwordField).top().left();
+        registerAsGuestButton = new TextButton("Register As Guest", skin);
+        registerAsGuestButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Controllers.getLoginMenuController().login("Guest", "Asd123@32!");
+                GameMain gameMain = GameMain.getInstance();
+                gameMain.changeScreen(
+                    new MainMenuScreen(),
+                    new BlendingTransition(gameMain.getSpriteBatch(), 1F, Interpolation.pow2In)
+                );
+            }
+        });
+
+        gotoLoginMenuButton = new TextButton("Go to Login", skin);
+        gotoLoginMenuButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                GameMain gameMain = GameMain.getInstance();
+                gameMain.changeScreen(
+                    new LoginMenuScreen(),
+                    new BlendingTransition(gameMain.getSpriteBatch(), 1F, Interpolation.pow2In)
+                );
+            }
+        });
+
+        Label label = new Label("Register Account", skin);
+        label.setAlignment(Align.center);
+
+// Form table for fields and buttons
+        Table formTable = new Table();
+        formTable.defaults().pad(10).width(400);
+        formTable.setBackground(skin.newDrawable("white", Color.DARK_GRAY));
+        formTable.add(registerButton).fillX().padTop(20).row();
+        formTable.pad(20);
+        formTable.setRound(true); // if using a rounded skin
 
 
-
+// Add form elements
+        formTable.add(usernameField).fillX().row();
+        formTable.add(passwordField).fillX().row();
+        formTable.add(securityQuestions).fillX().row();
+        formTable.add(securityQuestionField).fillX().row();
+        formTable.add(registerButton).fillX().row();
+        formTable.add(registerAsGuestButton).fillX().row();
+        formTable.add(gotoLoginMenuButton).fillX().row();
+        formTable.add(this.label).fillX().row();
         ui.addActor(root);
+
+// Center everything nicely
+        root.add(label).padBottom(30).colspan(1).center().row();
+        root.add(formTable).center();
     }
 
     @Override
     public void show() {
         super.show();
-
         resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
@@ -116,12 +177,9 @@ public class RegisterMenuScreen extends ManagedScreen {
 
     @Override
     public void hide() {
-
     }
 
     @Override
     public void dispose() {
-
     }
-
 }

@@ -1,30 +1,37 @@
 package sanctious.minini;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Interpolation;
-import com.badlogic.gdx.utils.ScreenUtils;
 import de.eskalon.commons.core.ManagedGame;
 import de.eskalon.commons.screen.ManagedScreen;
 import de.eskalon.commons.screen.transition.ScreenTransition;
 import de.eskalon.commons.screen.transition.impl.BlendingTransition;
 import de.eskalon.commons.utils.BasicInputMultiplexer;
-import sanctious.minini.View.MainMenuScreen;
+import sanctious.minini.Controllers.Controllers;
+import sanctious.minini.Models.GameAPI;
 import sanctious.minini.View.RegisterMenuScreen;
 
-public class Main extends ManagedGame<ManagedScreen, ScreenTransition> {
+public class GameMain extends ManagedGame<ManagedScreen, ScreenTransition> {
+    private static GameMain instance;
 
     private SpriteBatch spriteBatch;
+
+    private GameMain(){
+
+    }
+    public static GameMain getInstance() {
+        if (instance == null){
+            instance = new GameMain();
+        }
+        return instance;
+    }
+
 
     @Override
     public void create() {
         super.create();
+        Controllers.getRegisterController().register("Guest", "Asd123@32!");
 
         spriteBatch = new SpriteBatch();
         this.screenManager.setAutoDispose(true, true);
@@ -55,6 +62,10 @@ public class Main extends ManagedGame<ManagedScreen, ScreenTransition> {
     @Override
     public BasicInputMultiplexer getInputMultiplexer() {
         return super.getInputMultiplexer();
+    }
+
+    public void changeScreen(ManagedScreen screen, ScreenTransition transition){
+        this.screenManager.pushScreen(screen, transition);
     }
 
     public SpriteBatch getSpriteBatch() {

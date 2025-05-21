@@ -10,6 +10,7 @@ dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "com.github.crykn:libgdx-screenmanager:0.7.0"
   api "com.rafaskoberg.gdx:typing-label:1.4.0"
+  api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
