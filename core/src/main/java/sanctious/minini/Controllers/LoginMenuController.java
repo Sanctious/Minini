@@ -14,9 +14,8 @@ public class LoginMenuController {
             return ViewResult.failure("This user doesn't exist!");
         }
         if (!password.equals(user.getPassword())){
-            return ViewResult.failure("Password didn't match!");
+            return ViewResult.failure("Incorrect password!");
         }
-
 
         GameAPI.getUserRegistry().setActiveUser(user);
 

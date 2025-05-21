@@ -7,23 +7,24 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 import de.eskalon.commons.screen.ManagedScreen;
 import de.eskalon.commons.screen.transition.impl.BlendingTransition;
 import sanctious.minini.Controllers.Controllers;
 import sanctious.minini.GameMain;
+import sanctious.minini.Models.GameAPI;
 import sanctious.minini.Models.ViewResult;
 
 public class RegisterMenuScreen extends ManagedScreen {
 
     private final Stage ui = new Stage(new ScreenViewport());
-    private final Skin skin = new Skin(Gdx.files.internal("ui/neonui/neon-ui.json"));
+    private final Skin skin = GameAPI.getAssetManager().getSkin();
 
     private float delay = 1.2f;
     private boolean sceneSwitched;
@@ -55,6 +56,7 @@ public class RegisterMenuScreen extends ManagedScreen {
             "Only {RAINBOW}you{ENDRAINBOW} can help them out of this mess...\n\n" +
             "{SPEED=SLOW}{SLIDE}save them please!{ENDSLIDE}{SPEED}\n\n" +
             "Ps. {JUMP}Jump{ENDJUMP} onto enemy souls to destroy them!{WAIT=5} ", skin);
+        label.setVisible(false);
 
         usernameField = new TextField("", skin);
         usernameField.setMessageText("Enter username");
@@ -79,6 +81,7 @@ public class RegisterMenuScreen extends ManagedScreen {
                 ViewResult<Void> result = Controllers.getRegisterController().register(
                     usernameField.getText(), passwordField.getText());
                 if (!result.isSuccess()) {
+                    label.setVisible(true);
                     label.restart();
                     label.setText("{EASE}{SPEED=8}{COLOR=#FF0000}" + result.getMessage());
                 } else {
@@ -137,19 +140,38 @@ public class RegisterMenuScreen extends ManagedScreen {
         formTable.add(registerAsGuestButton).fillX().row();
         formTable.add(gotoLoginMenuButton).fillX().row();
         formTable.add(this.label).fillX().row();
-        ui.addActor(root);
+        root.add(new SettingsMenu());
+//        root.add(new ControllersMenu(skin));
 
-// Center everything nicely
         root.add(label).padBottom(30).colspan(1).center().row();
         root.add(formTable).center();
+        ui.addActor(root);
     }
+
+//    public void showInputDialog(String title, String defaultValue, final InputListener callback) {
+//        Dialog dialog = new Dialog(title, skin) {
+//            protected void result(Object object) {
+//                if (object instanceof String) {
+//                    callback.onInput((String) object);
+//                }
+//            }
+//        };
+//
+//        TextField inputField = new TextField(defaultValue, skin);
+//        inputField.setMessageText("Type here...");
+//
+//        dialog.getContentTable().add(inputField).width(300).pad(10);
+//        dialog.button("OK", inputField::getText);
+//        dialog.button("Cancel", null);
+//        dialog.show(stage);
+//    }
+
 
     @Override
     public void show() {
         super.show();
         resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
-
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.706f * 0.25f, 0.851f * 0.25f, 0.847f * 0.25f, 1);

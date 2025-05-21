@@ -4,6 +4,7 @@ public class User {
     private String username;
     private String password;
     private String avatar;
+    private UserScores data;
 
     public User(String username, String password) {
         this.username = username;
@@ -24,5 +25,9 @@ public class User {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public UserScores getData() {
+        return data;
     }
 }
