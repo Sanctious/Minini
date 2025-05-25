@@ -1,9 +1,9 @@
 package sanctious.minini.Models;
 
 public class UserScores {
-    private int maxSurviveSeconds;
-    private int totalKills;
-    private int totalPoints;
+    private int maxSurviveSeconds = 0 ;
+    private int totalKills = 0;
+    private int totalPoints = 0;
 
     public int getTotalPoints() {
         return totalPoints;

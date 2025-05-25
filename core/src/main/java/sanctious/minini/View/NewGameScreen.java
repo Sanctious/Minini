@@ -1,13 +1,19 @@
 package sanctious.minini.View;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 import de.eskalon.commons.screen.ManagedScreen;
+import de.eskalon.commons.screen.transition.impl.BlendingTransition;
+import sanctious.minini.GameMain;
 import sanctious.minini.Models.GameAPI;
 import sanctious.minini.Models.User;
 
@@ -54,7 +60,16 @@ public class NewGameScreen extends ManagedScreen {
         );
 
         TextButton play = new TextButton("Play", skin);
-
+        play.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                GameMain gameMain = GameMain.getInstance();
+                gameMain.changeScreen(
+                    new GameScreen(),
+                    null
+                );
+            }
+        });
 
         root.setWidth(400);
         root.defaults().pad(5);

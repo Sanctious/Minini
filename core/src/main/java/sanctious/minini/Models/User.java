@@ -4,7 +4,7 @@ public class User {
     private String username;
     private String password;
     private String avatar;
-    private UserScores data;
+    private UserScores data = new UserScores();
 
     public User(String username, String password) {
         this.username = username;
