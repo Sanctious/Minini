@@ -6,13 +6,13 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import sanctious.minini.Models.Game.Player;
 
-public class PlayerRenderer {
+public class BulletRenderer {
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> idle;
     private final Animation<TextureRegion> running;
     private float stateTime = 0f;
 
-    public PlayerRenderer(TextureAtlas atlas) {
+    public BulletRenderer(TextureAtlas atlas) {
         walkAnim = new Animation<>(0.1f, atlas.findRegions("Walk"), Animation.PlayMode.LOOP);
         idle = new Animation<>(0.1f, atlas.findRegions("Idle"), Animation.PlayMode.LOOP);
         running = new Animation<>(0.1f, atlas.findRegions("Run"), Animation.PlayMode.LOOP);

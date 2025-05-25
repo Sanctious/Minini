@@ -2,6 +2,7 @@ package sanctious.minini.View;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
@@ -12,35 +13,37 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import de.eskalon.commons.screen.ManagedScreen;
 import sanctious.minini.Controllers.Controllers;
 import sanctious.minini.Controllers.GameController;
 import sanctious.minini.GameMain;
-import sanctious.minini.Models.Bullet;
-import sanctious.minini.Models.Player;
-import sanctious.minini.Models.Weapon;
+import sanctious.minini.Models.Game.Bullet;
+import sanctious.minini.Models.Game.Player;
+import sanctious.minini.Models.Game.Weapon;
+import sanctious.minini.Models.Game.WeaponType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameScreen extends ManagedScreen {
 
-    private static final float PPM = 32f; // Pixels per meter
+    public static final float PPM = 32f; // Pixels per meter
 
     private OrthographicCamera camera;
     private Viewport viewport;
     private World world;
     private RayHandler rayHandler;
     // TODO ?? what to do ??
+    private Weapon weapon = new Weapon(WeaponType.SMG);
     private Player player = new Player();
-    private Weapon weapon = new Weapon();
+    {
+        player.setActiveWeapon(weapon);
+    }
     private PlayerRenderer playerRenderer = new PlayerRenderer(new TextureAtlas(Gdx.files.internal("Shanker.atlas")));
     private Texture cursorTexture = new Texture(Gdx.files.internal("hit/T_HitMarkerFX_0.png"));
     private Texture weaponTexture = new Texture(Gdx.files.internal("hit/T_Shotgun_SS_0.png"));
@@ -83,6 +86,7 @@ public class GameScreen extends ManagedScreen {
 
     @Override
     public void render(float delta) {
+        GameController controller = Controllers.getGameController();
         // Weapon rendering
         Vector2 weaponPos = player.getPosition().cpy().add(new Vector2(0, 0));
         Vector2 mousePos = new Vector2(Gdx.input.getX(), Gdx.input.getY());
@@ -96,10 +100,12 @@ public class GameScreen extends ManagedScreen {
         weapon.setRenderAngle(newAngle);
 
 
-
-        GameController controller = Controllers.getGameController();
+        // Handle shooting
+        checkShooting(controller);
+        checkReloading(controller);
 
         controller.updateBullets(delta);
+        controller.updateEnemies(delta);
         controller.updatePlayerPosition(player, delta);
 
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
@@ -118,6 +124,8 @@ public class GameScreen extends ManagedScreen {
 
         // Lerp camera
         updateCamera();
+        weapon.update(delta);
+//        pointLight.setPosition(player.getPosition());
 //        camera.position.set(player.getPosition(), 0);
 //        camera.update();
 
@@ -126,7 +134,8 @@ public class GameScreen extends ManagedScreen {
 
         // Draw your sprite
         batch.begin();
-        renderBullets(new ArrayList<>(), batch);
+
+        renderBullets(controller.getBullets(), batch);
         drawCustomCursor(batch);
         drawWeapon(batch);
         playerRenderer.render(batch, player, delta);
@@ -143,6 +152,20 @@ public class GameScreen extends ManagedScreen {
 
 //        Gdx.gl.glBindFramebuffer(GL20.GL_FRAMEBUFFER, oldFbo);
     }
+
+    public void checkShooting(GameController controller){
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            Vector2 mouseWorld = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+            controller.shoot(player, mouseWorld);
+        }
+    }
+
+    public void checkReloading(GameController controller){
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)){
+            controller.tryReload(player);
+        }
+    }
+
 
     private void updateCamera() {
         Vector2 playerPos = player.getPosition();
@@ -195,36 +218,42 @@ public class GameScreen extends ManagedScreen {
 
 
     }
-
     private void drawWeapon(SpriteBatch batch) {
-        // Offset from player center to weapon handle in world units (meters)
-        Vector2 handOffset = new Vector2(0.3f, 0f);
+        Vector2 playerPos = player.getPosition();
 
-        float angle = weapon.getRenderAngle();
+        // Calculate the mouse position in world coordinates
+        Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+        viewport.unproject(mouseWorld);
 
-        boolean facingRight = player.isFacing();
+        // Direction vector from player to mouse
+        Vector2 direction = mouseWorld.cpy().sub(playerPos);
 
-        // Flip the weapon texture horizontally if player faces left
-        boolean flipX = !facingRight;
+        // Angle in degrees for the weapon to point at the cursor
+        float targetAngle = direction.angleDeg();
 
-        // If flipped, mirror the handOffset X (to keep weapon on the correct side)
-        Vector2 adjustedOffset = handOffset.cpy();
-        if (flipX) {
-            adjustedOffset.x = -adjustedOffset.x;
-            angle = 180 - angle; // Mirror rotation around Y axis for flipping
-        }
+        // Decide if player faces right or left based on mouse position relative to player
+        boolean facingRight = direction.x >= 0;
+        player.setFacing(facingRight);
 
-        // Rotate offset by angle (adjusted for flip)
-        Vector2 rotatedOffset = adjustedOffset.cpy().rotateDeg(angle);
+        // Weapon offset from player center (adjust to fit your sprite)
+        Vector2 handOffset = new Vector2(facingRight ? 0.3f : -0.3f, 0.0f);
 
-        // Final weapon position in world units
-        Vector2 weaponPos = player.getPosition().cpy().add(rotatedOffset);
+        // Weapon position = player position + offset
+        Vector2 weaponPos = playerPos.cpy().add(handOffset);
 
-        // Origin (pivot) of the weapon sprite in pixels (handle position)
-        float originX = 0;
+        // Set origin for rotation (e.g. where the weapon is held - adjust as needed)
+        float originX = 5;  // pixels from left of weapon texture
         float originY = weaponTexture.getHeight() / 2f;
 
-        // Draw weapon
+        // If facing left, flip horizontally and adjust angle
+        float rotation = targetAngle;
+        boolean flipX = false;
+
+        if (!facingRight) {
+            rotation = 180 - targetAngle; // flip rotation horizontally
+            flipX = true;
+        }
+
         batch.draw(
             weaponTexture,
             weaponPos.x - originX / PPM,
@@ -235,7 +264,7 @@ public class GameScreen extends ManagedScreen {
             weaponTexture.getHeight() / PPM,
             1f,
             1f,
-            angle,
+            rotation,
             0,
             0,
             weaponTexture.getWidth(),
@@ -248,7 +277,14 @@ public class GameScreen extends ManagedScreen {
 
     public void renderBullets(List<Bullet> bullets, SpriteBatch batch){
         for (Bullet b : bullets) {
-            batch.draw(texture, b.position.x - 0.1f, b.position.y - 0.1f, 0.2f, 0.2f);
+            b.getRenderSprite().draw(batch);
+//            Sprite sprite = b.getRenderSprite();
+//            float width = sprite.getTexture().getWidth() / PPM;
+//            float height = sprite.getTexture().getHeight() / PPM;
+//            batch.draw(sprite.getTexture(),
+//                sprite.getX(), sprite.getY(),
+//                width, height);
+
         }
     }
 
