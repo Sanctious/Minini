@@ -7,7 +7,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 
 public class AssManager extends AssetManager {
-    private AssetManager manager = new AssetManager();
+//    private AssManager manager = new AssetManager();
+
     private final String[] avatars = {};
     private Skin skin = null;
     {
