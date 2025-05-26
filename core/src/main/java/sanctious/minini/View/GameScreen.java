@@ -22,10 +22,7 @@ import de.eskalon.commons.screen.ManagedScreen;
 import sanctious.minini.Controllers.Controllers;
 import sanctious.minini.Controllers.GameController;
 import sanctious.minini.GameMain;
-import sanctious.minini.Models.Game.Bullet;
-import sanctious.minini.Models.Game.Player;
-import sanctious.minini.Models.Game.Weapon;
-import sanctious.minini.Models.Game.WeaponType;
+import sanctious.minini.Models.Game.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +38,8 @@ public class GameScreen extends ManagedScreen {
     // TODO ?? what to do ??
     private Weapon weapon = new Weapon(WeaponType.SMG);
     private Player player = new Player();
+    private float passedTime = 0f;
+
     {
         player.setActiveWeapon(weapon);
     }
@@ -77,7 +76,7 @@ public class GameScreen extends ManagedScreen {
         texture = new Texture("libgdx.png");
 
         // Create a point light at center of screen (in meters)
-        pointLight = new PointLight(rayHandler, 128, Color.WHITE, 5f, 400 / PPM, 300 / PPM);
+        pointLight = new PointLight(rayHandler, 128, Color.WHITE, 50f, 400 / PPM, 300 / PPM);
 
         // Add a simple occluder box
         createOccluderBody(400 / PPM, 300 / PPM, 100 / PPM, 50 / PPM);
@@ -86,6 +85,7 @@ public class GameScreen extends ManagedScreen {
 
     @Override
     public void render(float delta) {
+        passedTime += delta;
         GameController controller = Controllers.getGameController();
         // Weapon rendering
         Vector2 weaponPos = player.getPosition().cpy().add(new Vector2(0, 0));
@@ -105,13 +105,9 @@ public class GameScreen extends ManagedScreen {
         checkReloading(controller);
 
         controller.updateBullets(delta);
-        controller.updateEnemies(delta);
+        controller.updateEnemies(player, delta);
         controller.updatePlayerPosition(player, delta);
-
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            Vector2 mouseWorld = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
-            controller.shoot(player, mouseWorld);
-        }
+        controller.trySpawnEnemies(player, delta);
 
 //        for (Bullet b : bullets) b.update(delta);
 
@@ -125,6 +121,7 @@ public class GameScreen extends ManagedScreen {
         // Lerp camera
         updateCamera();
         weapon.update(delta);
+        player.update(delta);
 //        pointLight.setPosition(player.getPosition());
 //        camera.position.set(player.getPosition(), 0);
 //        camera.update();
@@ -136,21 +133,19 @@ public class GameScreen extends ManagedScreen {
         batch.begin();
 
         renderBullets(controller.getBullets(), batch);
+        renderEnemies(controller.getEnemies(), batch, delta);
         drawCustomCursor(batch);
         drawWeapon(batch);
-        playerRenderer.render(batch, player, delta);
+        playerRenderer.render(batch, player, passedTime);
         batch.draw(texture,
             400 / PPM - 50 / PPM, 300 / PPM - 50 / PPM,
             100 / PPM, 100 / PPM);
         batch.end();
 
-        // === FIX: Save and restore FBO to not break Eskalon's framebuffer stack ===
-//        int oldFbo = Gdx.GL20.GL_FRAMEBUFFER_BINDING);
 
         rayHandler.setCombinedMatrix(camera);
         rayHandler.updateAndRender();
 
-//        Gdx.gl.glBindFramebuffer(GL20.GL_FRAMEBUFFER, oldFbo);
     }
 
     public void checkShooting(GameController controller){
@@ -286,6 +281,13 @@ public class GameScreen extends ManagedScreen {
 //                width, height);
 
         }
+    }
+
+    public void renderEnemies(List<Enemy> enemies, SpriteBatch batch, float delta){
+        for (Enemy enemy : enemies) {
+            enemy.getRenderer().render(batch, passedTime);
+        }
+
     }
 
 

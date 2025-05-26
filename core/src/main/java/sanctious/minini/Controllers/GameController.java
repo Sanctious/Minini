@@ -4,6 +4,7 @@
     import com.badlogic.gdx.Input;
     import com.badlogic.gdx.InputProcessor;
     import com.badlogic.gdx.graphics.Texture;
+    import com.badlogic.gdx.graphics.g2d.TextureAtlas;
     import com.badlogic.gdx.math.MathUtils;
     import com.badlogic.gdx.math.Vector2;
     import sanctious.minini.Models.Game.Bullet;
@@ -11,12 +12,14 @@
     import sanctious.minini.Models.Game.Player;
     import sanctious.minini.Models.Game.Weapon;
     import sanctious.minini.Models.PlayerState;
+    import sanctious.minini.View.EnemyRenderer;
 
     import java.util.ArrayList;
     import java.util.List;
 
     public class GameController implements InputProcessor {
-
+        private final float spawnInterval = 5f;
+        private float spawnTimer = 0f;
         private final Texture bulletTexture = new Texture(Gdx.files.internal("hit/T_Shotgun_SS_1.png"));
         // TODO proper usage for these ??
         private final List<Enemy> enemies = new ArrayList<>();
@@ -64,6 +67,7 @@
 
 
             player.setState(PlayerState.Idling);
+            player.setSpeed(0f);
             if (input.len2() > 0) {
                 player.setState(PlayerState.Walking);
                 player.setSpeed(2.5f);
@@ -71,8 +75,7 @@
                     player.setState(PlayerState.Running);
                     player.setSpeed(5f);
                 }
-                input.nor().scl(player.getSpeed() * delta);
-                player.getPosition().add(input);
+                player.setDirVector(input);
             }
         }
 
@@ -95,8 +98,26 @@
             bullets.forEach(bullet ->bullet.update(delta));
         }
 
-        public void updateEnemies(float delta) {
-            enemies.forEach(enemy -> enemy.update(delta));
+        public void updateEnemies(Player player, float delta) {
+            enemies.forEach(enemy -> enemy.update(player, delta));
+
+        }
+
+        public void trySpawnEnemies(Player player, float delta){
+            spawnTimer += delta;
+            if (spawnTimer < spawnInterval) return;
+
+            spawnTimer = 0;
+            float radius = 200f;
+            float angle = MathUtils.random(0f, 360f);
+
+            float enemyX = player.getPosition().x + MathUtils.cosDeg(angle) * radius;
+            float enemyY = player.getPosition().y + MathUtils.sinDeg(angle) * radius;
+
+            Enemy enemy = new Enemy(new Vector2(enemyX,enemyY));
+            EnemyRenderer renderer = new EnemyRenderer(enemy, new TextureAtlas(Gdx.files.internal("BrainMonster.atlas")));
+            enemy.setRenderer(renderer);
+            enemies.add(enemy);
         }
 
 

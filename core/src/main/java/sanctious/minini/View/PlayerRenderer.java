@@ -10,17 +10,13 @@ public class PlayerRenderer {
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> idle;
     private final Animation<TextureRegion> running;
-    private float stateTime = 0f;
-
     public PlayerRenderer(TextureAtlas atlas) {
         walkAnim = new Animation<>(0.1f, atlas.findRegions("Walk"), Animation.PlayMode.LOOP);
         idle = new Animation<>(0.1f, atlas.findRegions("Idle"), Animation.PlayMode.LOOP);
         running = new Animation<>(0.1f, atlas.findRegions("Run"), Animation.PlayMode.LOOP);
     }
 
-    public void render(SpriteBatch batch, Player player, float delta) {
-        stateTime += delta;
-
+    public void render(SpriteBatch batch, Player player, float stateTime) {
         TextureRegion frame = switch (player.getState()){
             case Idling -> idle.getKeyFrame(stateTime, true);
             case Walking -> walkAnim.getKeyFrame(stateTime, true);
