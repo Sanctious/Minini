@@ -6,16 +6,20 @@ import com.badlogic.gdx.math.Vector2;
 import sanctious.minini.View.GameScreen;
 
 public class Bullet extends MovableObject{
+    private final WeaponType weaponType;
     private final Sprite renderSprite;
 
 
     public Bullet(Vector2 start,
                   Vector2 direction,
-                  Texture renderTexture) {
+                  Texture renderTexture,
+                  WeaponType weaponType) {
         this.speed = 25f;
         this.position = start.cpy();
         this.dirVector = direction.nor().scl(speed);
         this.renderSprite = new Sprite(renderTexture);
+        this.weaponType = weaponType;
+
 
 //        float width = renderTexture.getWidth() / GameScreen.PPM;
 //        float height = renderTexture.getHeight() / GameScreen.PPM;
@@ -30,6 +34,10 @@ public class Bullet extends MovableObject{
 
     public Sprite getRenderSprite() {
         return renderSprite;
+    }
+
+    public WeaponType getWeaponType() {
+        return weaponType;
     }
 
     @Override

@@ -6,6 +6,7 @@
     import com.badlogic.gdx.graphics.Texture;
     import com.badlogic.gdx.graphics.g2d.TextureAtlas;
     import com.badlogic.gdx.math.MathUtils;
+    import com.badlogic.gdx.math.Rectangle;
     import com.badlogic.gdx.math.Vector2;
     import sanctious.minini.Models.Game.Bullet;
     import sanctious.minini.Models.Game.Enemy;
@@ -43,14 +44,16 @@
                 Vector2 pelletDir = new Vector2(dir).rotateDeg(angleOffset).nor().scl(bulletSpeed);
 
                 // Create bullet with position and direction
-                Bullet b = new Bullet(player.getPosition().cpy(), pelletDir, bulletTexture);
+                Bullet b = new Bullet(player.getPosition().cpy(), pelletDir, bulletTexture, player.getActiveWeapon().getType());
 
                 // Add bullet to your list
                 bullets.add(b);
             }
 
+
 //            bullets.add(new Bullet(player.getPosition(), dir, bulletTexture));
         }
+
 
 
         public void updatePlayerPosition(Player player, float delta){
@@ -86,6 +89,41 @@
             weapon.startReload();
         }
 
+        public void checkCollisions(){
+            List<Enemy> removeEnemies = new ArrayList<>();
+            for (Enemy enemy : enemies) {
+                List<Bullet> removeBullets = new ArrayList<>();
+                for (Bullet bullet : bullets) {
+                    Rectangle rect1 = new Rectangle(
+                        bullet.getPosition().x,
+                        bullet.getPosition().y,
+                        bullet.getRenderSprite().getWidth(),
+                        bullet.getRenderSprite().getHeight()
+                    );
+                    Rectangle rect2 = new Rectangle(
+                        enemy.getPosition().x,
+                        enemy.getPosition().y,
+                        enemy.getRenderer().getFrame().getRegionWidth(),
+                        enemy.getRenderer().getFrame().getRegionHeight()
+                    );
+
+                    if (rect1.overlaps(rect2)){
+                        removeBullets.add(bullet);
+                        enemy.modifyHealth(-bullet.getWeaponType().getDamage());
+
+                        if (enemy.isDead()) {
+                            // drop stuff here
+                            removeEnemies.add(enemy);
+                        }
+                    }
+
+
+                }
+                bullets.removeAll(removeBullets);
+            }
+            enemies.removeAll(removeEnemies);
+        }
+
         public List<Enemy> getEnemies() {
             return enemies;
         }
@@ -108,7 +146,7 @@
             if (spawnTimer < spawnInterval) return;
 
             spawnTimer = 0;
-            float radius = 200f;
+            float radius = 1000f;
             float angle = MathUtils.random(0f, 360f);
 
             float enemyX = player.getPosition().x + MathUtils.cosDeg(angle) * radius;

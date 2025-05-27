@@ -63,4 +63,8 @@ public class Weapon {
     public void setRenderAngle(float renderAngle) {
         this.renderAngle = renderAngle;
     }
+
+    public WeaponType getType() {
+        return type;
+    }
 }

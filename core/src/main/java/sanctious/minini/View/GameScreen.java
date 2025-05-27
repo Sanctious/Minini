@@ -105,6 +105,7 @@ public class GameScreen extends ManagedScreen {
         checkReloading(controller);
 
         controller.updateBullets(delta);
+        controller.checkCollisions();
         controller.updateEnemies(player, delta);
         controller.updatePlayerPosition(player, delta);
         controller.trySpawnEnemies(player, delta);

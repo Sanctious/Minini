@@ -10,6 +10,7 @@ import sanctious.minini.Models.Game.Player;
 public class EnemyRenderer {
     private final Enemy enemy;
     private final Animation<TextureRegion> walkAnim;
+    private TextureRegion frame = null; // doesn't it cause issues
 //    private final Animation<TextureRegion> idle;
 //    private final Animation<TextureRegion> running;
 
@@ -20,8 +21,12 @@ public class EnemyRenderer {
 //        running = new Animation<>(0.1f, atlas.findRegions("Run"), Animation.PlayMode.LOOP);
     }
 
+    public TextureRegion getFrame() {
+        return frame;
+    }
+
     public void render(SpriteBatch batch, float stateTime) {
-        TextureRegion frame = walkAnim.getKeyFrame(stateTime, true);
+        frame = walkAnim.getKeyFrame(stateTime, true);
 //        TextureRegion frame = switch (player.getState()){
 //            case Idling -> idle.getKeyFrame(stateTime, true);
 //            case Walking -> walkAnim.getKeyFrame(stateTime, true);
