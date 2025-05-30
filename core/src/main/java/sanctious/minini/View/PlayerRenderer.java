@@ -10,14 +10,17 @@ public class PlayerRenderer {
     private final Animation<TextureRegion> walkAnim;
     private final Animation<TextureRegion> idle;
     private final Animation<TextureRegion> running;
+    private TextureRegion frame;
+
     public PlayerRenderer(TextureAtlas atlas) {
         walkAnim = new Animation<>(0.1f, atlas.findRegions("Walk"), Animation.PlayMode.LOOP);
         idle = new Animation<>(0.1f, atlas.findRegions("Idle"), Animation.PlayMode.LOOP);
         running = new Animation<>(0.1f, atlas.findRegions("Run"), Animation.PlayMode.LOOP);
+        frame = idle.getKeyFrame(0, true);
     }
 
     public void render(SpriteBatch batch, Player player, float stateTime) {
-        TextureRegion frame = switch (player.getState()){
+        frame = switch (player.getState()){
             case Idling -> idle.getKeyFrame(stateTime, true);
             case Walking -> walkAnim.getKeyFrame(stateTime, true);
             case Running -> running.getKeyFrame(stateTime, true);
@@ -40,5 +43,9 @@ public class PlayerRenderer {
         float drawY = player.getPosition().y - spriteHeight / 2f;
 
         batch.draw(frame, drawX, drawY, spriteWidth, spriteHeight);
+    }
+
+    public TextureRegion getFrame() {
+        return frame;
     }
 }

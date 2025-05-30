@@ -2,14 +2,12 @@ package sanctious.minini.View;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
@@ -23,8 +21,8 @@ import sanctious.minini.Controllers.Controllers;
 import sanctious.minini.Controllers.GameController;
 import sanctious.minini.GameMain;
 import sanctious.minini.Models.Game.*;
+import sanctious.minini.Models.Game.Enemies.Enemy;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GameScreen extends ManagedScreen {
@@ -37,7 +35,7 @@ public class GameScreen extends ManagedScreen {
     private RayHandler rayHandler;
     // TODO ?? what to do ??
     private Weapon weapon = new Weapon(WeaponType.SMG);
-    private Player player = new Player();
+    private Player player = new Player(20f, 5f);
     private float passedTime = 0f;
 
     {
@@ -45,6 +43,7 @@ public class GameScreen extends ManagedScreen {
     }
     private PlayerRenderer playerRenderer = new PlayerRenderer(new TextureAtlas(Gdx.files.internal("Shanker.atlas")));
     private Texture cursorTexture = new Texture(Gdx.files.internal("hit/T_HitMarkerFX_0.png"));
+    public static Texture xpTexture = new Texture(Gdx.files.internal("enemies/T_DiamondFilled.png"));
     private Texture weaponTexture = new Texture(Gdx.files.internal("hit/T_Shotgun_SS_0.png"));
 
 
@@ -81,6 +80,9 @@ public class GameScreen extends ManagedScreen {
         // Add a simple occluder box
         createOccluderBody(400 / PPM, 300 / PPM, 100 / PPM, 50 / PPM);
 
+        GameController controller = Controllers.getGameController();
+        controller.initializeMap();
+
     }
 
     @Override
@@ -105,8 +107,8 @@ public class GameScreen extends ManagedScreen {
         checkReloading(controller);
 
         controller.updateBullets(delta);
-        controller.checkCollisions();
         controller.updateEnemies(player, delta);
+        controller.checkCollisions(player, playerRenderer);
         controller.updatePlayerPosition(player, delta);
         controller.trySpawnEnemies(player, delta);
 
@@ -134,6 +136,7 @@ public class GameScreen extends ManagedScreen {
         batch.begin();
 
         renderBullets(controller.getBullets(), batch);
+        renderXPs(controller.getXps(), batch, delta);
         renderEnemies(controller.getEnemies(), batch, delta);
         drawCustomCursor(batch);
         drawWeapon(batch);
@@ -217,37 +220,30 @@ public class GameScreen extends ManagedScreen {
     private void drawWeapon(SpriteBatch batch) {
         Vector2 playerPos = player.getPosition();
 
-        // Calculate the mouse position in world coordinates
         Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
         viewport.unproject(mouseWorld);
 
-        // Direction vector from player to mouse
         Vector2 direction = mouseWorld.cpy().sub(playerPos);
-
-        // Angle in degrees for the weapon to point at the cursor
         float targetAngle = direction.angleDeg();
 
-        // Decide if player faces right or left based on mouse position relative to player
         boolean facingRight = direction.x >= 0;
         player.setFacing(facingRight);
 
-        // Weapon offset from player center (adjust to fit your sprite)
-        Vector2 handOffset = new Vector2(facingRight ? 0.3f : -0.3f, 0.0f);
-
-        // Weapon position = player position + offset
+        Vector2 handOffset = new Vector2(facingRight ? 0.3f : -0.4f, 0.0f);
         Vector2 weaponPos = playerPos.cpy().add(handOffset);
 
-        // Set origin for rotation (e.g. where the weapon is held - adjust as needed)
-        float originX = 5;  // pixels from left of weapon texture
+// Origin where the hand holds the weapon
+        float originX = facingRight ? 5 : weaponTexture.getWidth() - 5;
         float originY = weaponTexture.getHeight() / 2f;
 
-        // If facing left, flip horizontally and adjust angle
         float rotation = targetAngle;
         boolean flipX = false;
+        boolean flipY = false;
 
         if (!facingRight) {
-            rotation = 180 - targetAngle; // flip rotation horizontally
-            flipX = true;
+//            rotation = 180f - targetAngle;
+//            flipX = true;
+            flipY = true;
         }
 
         batch.draw(
@@ -266,8 +262,9 @@ public class GameScreen extends ManagedScreen {
             weaponTexture.getWidth(),
             weaponTexture.getHeight(),
             flipX,
-            false
+            flipY
         );
+
     }
 
 
@@ -286,7 +283,20 @@ public class GameScreen extends ManagedScreen {
 
     public void renderEnemies(List<Enemy> enemies, SpriteBatch batch, float delta){
         for (Enemy enemy : enemies) {
-            enemy.getRenderer().render(batch, passedTime);
+            enemy.getRenderer().render(batch, delta);
+        }
+
+    }
+
+    public void renderXPs(List<XP> xps, SpriteBatch batch, float delta){
+        float scale = 0.032f / PPM;
+        float spriteWidth = xpTexture.getWidth() * scale;
+        float spriteHeight = xpTexture.getHeight() * scale;
+        for (XP xp : xps) {
+            float drawX = xp.getPosition().x - spriteWidth / 2f;
+            float drawY = xp.getPosition().y - spriteHeight / 2f;
+
+            batch.draw(xpTexture, drawX, drawY, spriteWidth, spriteHeight);
         }
 
     }

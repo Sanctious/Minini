@@ -1,18 +1,20 @@
-package sanctious.minini.Models.Game;
+package sanctious.minini.Models.Game.Enemies;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
+import sanctious.minini.Models.Game.EnemyState;
+import sanctious.minini.Models.Game.MovableObject;
+import sanctious.minini.Models.Game.Player;
 import sanctious.minini.View.EnemyRenderer;
 
-public class Enemy extends MovableObject{
-    private float health;
-    private EnemyState state;
-    private EnemyRenderer renderer = null;
+public class Enemy extends MovableObject {
+    protected float health;
+    protected EnemyState state;
+    protected EnemyRenderer renderer = null;
 
     public Enemy(Vector2 position) {
+        this.position = position;
         this.state = EnemyState.Idling;
-        this.speed = 5f;
-        this.health = 10f;
     }
 
     public void setRenderer(EnemyRenderer renderer) {

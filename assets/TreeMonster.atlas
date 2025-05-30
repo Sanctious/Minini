@@ -1,0 +1,12 @@
+TreeMonster.png
+size:256,128
+repeat:none
+TreeMonster
+index:1
+bounds:2,2,70,92
+TreeMonster
+index:0
+bounds:74,2,70,92
+TreeMonster
+index:2
+bounds:146,2,70,92

@@ -5,26 +5,45 @@
     import com.badlogic.gdx.InputProcessor;
     import com.badlogic.gdx.graphics.Texture;
     import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+    import com.badlogic.gdx.graphics.g2d.TextureRegion;
     import com.badlogic.gdx.math.MathUtils;
     import com.badlogic.gdx.math.Rectangle;
     import com.badlogic.gdx.math.Vector2;
-    import sanctious.minini.Models.Game.Bullet;
-    import sanctious.minini.Models.Game.Enemy;
-    import sanctious.minini.Models.Game.Player;
-    import sanctious.minini.Models.Game.Weapon;
+    import org.w3c.dom.Text;
+    import sanctious.minini.Models.Game.*;
+    import sanctious.minini.Models.Game.Enemies.BrainMonster;
+    import sanctious.minini.Models.Game.Enemies.Enemy;
+    import sanctious.minini.Models.Game.Enemies.TreeEnemy;
     import sanctious.minini.Models.PlayerState;
     import sanctious.minini.View.EnemyRenderer;
+    import sanctious.minini.View.GameScreen;
+    import sanctious.minini.View.PlayerRenderer;
 
     import java.util.ArrayList;
     import java.util.List;
 
     public class GameController implements InputProcessor {
-        private final float spawnInterval = 5f;
+        private float spawnInterval = 5f;
         private float spawnTimer = 0f;
         private final Texture bulletTexture = new Texture(Gdx.files.internal("hit/T_Shotgun_SS_1.png"));
         // TODO proper usage for these ??
         private final List<Enemy> enemies = new ArrayList<>();
         private final List<Bullet> bullets = new ArrayList<>();
+        private final List<XP> xps = new ArrayList<>();
+
+        public void initializeMap(){
+            TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("TreeMonster.atlas"));
+
+            for (int i = 0; i < 40; i++){
+                int randomX = MathUtils.random(-100, 100);
+                int randomY = MathUtils.random(-100, 100);
+
+                TreeEnemy treeEnemy = new TreeEnemy(new Vector2(randomX, randomY));
+                EnemyRenderer renderer = new EnemyRenderer(treeEnemy, atlas, "TreeMonster");
+                treeEnemy.setRenderer(renderer);
+                enemies.add(treeEnemy);
+            }
+        }
 
         public void shoot(Player player,
                           Vector2 mouseWorld) {
@@ -73,10 +92,10 @@
             player.setSpeed(0f);
             if (input.len2() > 0) {
                 player.setState(PlayerState.Walking);
-                player.setSpeed(2.5f);
+                player.setSpeed(player.getDefaultSpeed());
                 if (running) {
                     player.setState(PlayerState.Running);
-                    player.setSpeed(5f);
+                    player.setSpeed(player.getDefaultSpeed() * 1.5f);
                 }
                 player.setDirVector(input);
             }
@@ -89,30 +108,73 @@
             weapon.startReload();
         }
 
-        public void checkCollisions(){
+        public void checkCollisions(Player player, PlayerRenderer renderer){
+            List<XP> removeXPs = new ArrayList<>();
+            for (XP xp : xps) {
+                Texture xpRenderSprite = GameScreen.xpTexture;
+                TextureRegion playerSprite = renderer.getFrame();
+                float scale = 0.032f / GameScreen.PPM;
+                float xpWidth = xpRenderSprite.getWidth() * scale;
+                float xpHeight = xpRenderSprite.getHeight() * scale;
+                float playerWidth = playerSprite.getRegionWidth() / GameScreen.PPM;
+                float playerHeight = playerSprite.getRegionHeight() / GameScreen.PPM;
+
+                Rectangle rect1 = new Rectangle(
+                    xp.getPosition().x - xpWidth / 2f,
+                    xp.getPosition().y - xpHeight / 2f,
+                    xpWidth,
+                    xpHeight
+                );
+
+                Rectangle rect2 = new Rectangle(
+                    player.getPosition().x - playerWidth / 2f,
+                    player.getPosition().y - playerHeight / 2f,
+                    playerWidth,
+                    playerHeight
+                );
+
+                if (rect1.overlaps(rect2)){
+                    removeXPs.add(xp);
+
+                    player.addXP(xp.getXp());
+                }
+            }
+            xps.removeAll(removeXPs);
+
             List<Enemy> removeEnemies = new ArrayList<>();
             for (Enemy enemy : enemies) {
                 List<Bullet> removeBullets = new ArrayList<>();
                 for (Bullet bullet : bullets) {
+                    TextureRegion bulletSprite = bullet.getRenderSprite();
+                    TextureRegion enemySprite = enemy.getRenderer().getFrame();
+                    float bulletWidth = bulletSprite.getRegionWidth() / GameScreen.PPM;
+                    float bulletHeight = bulletSprite.getRegionHeight() / GameScreen.PPM;
+                    float enemyWidth = enemySprite.getRegionWidth() / GameScreen.PPM;
+                    float enemyHeight = enemySprite.getRegionHeight() / GameScreen.PPM;
+
                     Rectangle rect1 = new Rectangle(
-                        bullet.getPosition().x,
-                        bullet.getPosition().y,
-                        bullet.getRenderSprite().getWidth(),
-                        bullet.getRenderSprite().getHeight()
+                        bullet.getPosition().x - bulletWidth / 2f,
+                        bullet.getPosition().y - bulletHeight / 2f,
+                        bulletWidth,
+                        bulletHeight
                     );
+
                     Rectangle rect2 = new Rectangle(
-                        enemy.getPosition().x,
-                        enemy.getPosition().y,
-                        enemy.getRenderer().getFrame().getRegionWidth(),
-                        enemy.getRenderer().getFrame().getRegionHeight()
+                        enemy.getPosition().x - enemyWidth / 2f,
+                        enemy.getPosition().y - enemyHeight / 2f,
+                        enemyWidth,
+                        enemyHeight
                     );
 
                     if (rect1.overlaps(rect2)){
+                        if (enemy.isDead()) continue;
+
                         removeBullets.add(bullet);
                         enemy.modifyHealth(-bullet.getWeaponType().getDamage());
 
                         if (enemy.isDead()) {
                             // drop stuff here
+                            spawnXPPoints(enemy.getPosition(), 5f);
                             removeEnemies.add(enemy);
                         }
                     }
@@ -132,6 +194,10 @@
             return bullets;
         }
 
+        public List<XP> getXps() {
+            return xps;
+        }
+
         public void updateBullets(float delta) {
             bullets.forEach(bullet ->bullet.update(delta));
         }
@@ -143,19 +209,32 @@
 
         public void trySpawnEnemies(Player player, float delta){
             spawnTimer += delta;
+            spawnInterval -= delta/20;
             if (spawnTimer < spawnInterval) return;
 
             spawnTimer = 0;
-            float radius = 1000f;
+            float radius = 20f;
             float angle = MathUtils.random(0f, 360f);
 
             float enemyX = player.getPosition().x + MathUtils.cosDeg(angle) * radius;
             float enemyY = player.getPosition().y + MathUtils.sinDeg(angle) * radius;
 
-            Enemy enemy = new Enemy(new Vector2(enemyX,enemyY));
-            EnemyRenderer renderer = new EnemyRenderer(enemy, new TextureAtlas(Gdx.files.internal("BrainMonster.atlas")));
-            enemy.setRenderer(renderer);
-            enemies.add(enemy);
+            BrainMonster brainMonster = new BrainMonster(new Vector2(enemyX,enemyY));
+            EnemyRenderer renderer = new EnemyRenderer(brainMonster, new TextureAtlas(Gdx.files.internal("BrainMonster.atlas")), "BrainMonster");
+            brainMonster.setRenderer(renderer);
+            enemies.add(brainMonster);
+        }
+
+        public void spawnXPPoints(Vector2 position, float value){
+            float count = MathUtils.random(2, 3);
+            for (int i = 0; i < count; i++){
+                float dx = MathUtils.random(-0.5f, 0.5f);
+                float dy = MathUtils.random(-0.5f, 0.5f);
+
+                XP xp = new XP(new Vector2(position.x + dx, position.y + dy), value/count);
+
+                xps.add(xp);
+            }
         }
 
 
