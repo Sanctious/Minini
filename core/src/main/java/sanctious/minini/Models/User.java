@@ -11,6 +11,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.securityQuestion = securityQuestion;
+        this.avatar = GameAPI.getAssetManager().getRandomAvatar();
     }
 
     public String getUsername() {
@@ -23,6 +24,18 @@ public class User {
 
     public String getAvatar() {
         return avatar;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setSecurityQuestion(String securityQuestion) {
+        this.securityQuestion = securityQuestion;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public void setAvatar(String avatar) {

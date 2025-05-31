@@ -6,7 +6,7 @@ import sanctious.minini.Models.ViewResult;
 
 public class RegisterMenuController {
 
-    public boolean isPasswordStrong(String password){
+    public static boolean isPasswordStrong(String password){
         return password != null &&
             password.length() >= 8 &&
             password.matches(".*[A-Z].*") &&

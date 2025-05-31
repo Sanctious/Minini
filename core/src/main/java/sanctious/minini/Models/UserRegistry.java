@@ -27,6 +27,8 @@ public class UserRegistry {
         this.users.add(user);
     }
 
+    public void removeUser(User user) { this.users.remove(user); }
+
     public User getActiveUser() {
         return activeUser;
     }

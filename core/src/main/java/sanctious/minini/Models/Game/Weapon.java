@@ -3,8 +3,7 @@ package sanctious.minini.Models.Game;
 public class Weapon {
     private WeaponType type;
     private float renderAngle = 0f;
-    private int ammoInClip;
-    private final int maxClipSize;
+    private int ammoInClip = 0;
     private float reloadTime;
     private float reloadTimer = 0f;
     private boolean reloading = false;
@@ -13,7 +12,6 @@ public class Weapon {
 
     public Weapon(WeaponType type) {
         this.type = type;
-        this.maxClipSize = type.getMaxClipSize();
         this.ammoInClip = type.getMaxClipSize();
         this.reloadTime = type.getReloadTime();
     }
@@ -31,7 +29,7 @@ public class Weapon {
     }
 
     public boolean isClipFull(){
-        return maxClipSize == ammoInClip;
+        return type.getMaxClipSize() == ammoInClip;
     }
 
     public boolean tryShoot() {
@@ -47,14 +45,14 @@ public class Weapon {
     }
 
     public void startReload() {
-        if (!reloading && ammoInClip < maxClipSize) {
+        if (!reloading && ammoInClip < type.getMaxClipSize()) {
             reloading = true;
             reloadTimer = 0f;
         }
     }
 
     private void finishReload() {
-        ammoInClip = maxClipSize;
+        ammoInClip = type.getMaxClipSize();
         reloading = false;
     }
 
@@ -72,5 +70,25 @@ public class Weapon {
 
     public WeaponType getType() {
         return type;
+    }
+
+    public int getAmmoInClip() {
+        return ammoInClip;
+    }
+
+    public int getMaxClipSize() {
+        return type.getMaxClipSize();
+    }
+
+    public float getReloadTime() {
+        return reloadTime;
+    }
+
+    public float getReloadTimer() {
+        return reloadTimer;
+    }
+
+    public float getFireRateTimer() {
+        return fireRateTimer;
     }
 }

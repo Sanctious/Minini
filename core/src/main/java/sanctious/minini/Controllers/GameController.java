@@ -3,12 +3,15 @@
     import com.badlogic.gdx.Gdx;
     import com.badlogic.gdx.Input;
     import com.badlogic.gdx.InputProcessor;
+    import com.badlogic.gdx.graphics.OrthographicCamera;
     import com.badlogic.gdx.graphics.Texture;
     import com.badlogic.gdx.graphics.g2d.TextureAtlas;
     import com.badlogic.gdx.graphics.g2d.TextureRegion;
     import com.badlogic.gdx.math.MathUtils;
     import com.badlogic.gdx.math.Rectangle;
     import com.badlogic.gdx.math.Vector2;
+    import com.badlogic.gdx.math.Vector3;
+    import com.badlogic.gdx.utils.viewport.Viewport;
     import sanctious.minini.Models.Game.*;
     import sanctious.minini.Models.Game.Enemies.*;
     import sanctious.minini.Models.GameAPI;
@@ -78,7 +81,6 @@
 
         public void applyUpgrade(Player player, Upgrade upgrade){
             WeaponType weaponType = player.getActiveWeapon().getType();
-
             switch (upgrade){
                 case Vitality -> {
                     player.setMaxHealth(player.getMaxHealth() + 1);
@@ -90,7 +92,7 @@
                     player.setSpeedBoostTimer(10);
                 }
                 case Amocrease -> {
-                    weaponType.setMaxClipSize(weaponType.getMaxClipSize() + 5);
+                    weaponType.setMaxClipSize(weaponType.getMaxClipSize() + 4);
                 }
                 case Damager -> {
                     player.setDamageBoostTimer(10);
@@ -103,19 +105,28 @@
             player.addHealth(amount);
         }
 
-        public void autoAim(Player player){
-            Enemy closestEnemy = enemies.stream().sorted(new Comparator<Enemy>() {
-                @Override
-                public int compare(Enemy e1, Enemy e2) {
-                    return -Float.compare(
-                        e1.getPosition().cpy().sub(player.getPosition()).len2(),
-                        e2.getPosition().cpy().sub(player.getPosition()).len2()
-                    );
-                }})
-                .findFirst().orElseGet(null);
+        public void autoAim(Player player, OrthographicCamera camera, Viewport viewport) {
+            Enemy closestEnemy = this.enemies.stream()
+                .filter(e -> e != null && e.getPosition() != null && !e.isDead())
+                .min(Comparator.comparingDouble(e -> player.getPosition().dst2(e.getPosition())))
+                .orElse(null);
 
-            if (closestEnemy != null){
-                // stuff here
+            if (closestEnemy != null) {
+                Vector2 enemyWorldPosition = closestEnemy.getPosition();
+
+                Vector3 enemyScreenPositionVec = new Vector3(enemyWorldPosition.x, enemyWorldPosition.y, 0);
+                camera.project(enemyScreenPositionVec,
+                    viewport.getScreenX(),
+                    viewport.getScreenY(),
+                    viewport.getScreenWidth(),
+                    viewport.getScreenHeight());
+
+                int screenX = (int) enemyScreenPositionVec.x;
+                int screenY = Gdx.graphics.getHeight() - (int) enemyScreenPositionVec.y;
+
+                Gdx.input.setCursorPosition(screenX, screenY);
+
+                shoot(player, enemyWorldPosition);
             }
         }
 
@@ -156,8 +167,9 @@
             player.addXP(amount);
 
             // Level up player
-            while (player.getXP() > player.getLevel() * 20){
-                player.setXP(player.getXP() - player.getLevel() * 20);
+            while (Float.compare(player.getXP(), player.getXPToNextLevel()) >= 0){
+                player.setXP(player.getXP() - player.getXPToNextLevel());
+                applyUpgrade(player, Upgrade.getRandomUpgrade());
                 player.setLevel(player.getLevel() + 1);
             }
         }
@@ -193,7 +205,7 @@
                 if (bulletRect.overlaps(playerRect)){
                     removeBulletsEnemies.add(bullet);
 
-                    player.damage(((Enemy) bullet.getShooter()).getDamage(), false);
+                    player.damage(((Enemy) bullet.getShooter()).getDamage(), true);
                 }
 
 

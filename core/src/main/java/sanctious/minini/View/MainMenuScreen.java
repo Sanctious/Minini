@@ -3,138 +3,152 @@ package sanctious.minini.View;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import de.eskalon.commons.screen.ManagedScreen;
 import de.eskalon.commons.screen.transition.impl.BlendingTransition;
-import org.w3c.dom.Text;
 import sanctious.minini.GameMain;
 import sanctious.minini.Models.GameAPI;
 import sanctious.minini.Models.User;
-import sanctious.minini.Models.UserRegistry;
 
 public class MainMenuScreen extends ManagedScreen {
-    private Stage ui = new Stage(new ScreenViewport());
-    private Skin skin = GameAPI.getAssetManager().getSkin();
-
-    private TextButton settingsButton;
-    private TextButton profileButton;
-    private TextButton newGameButton;
-    private TextButton loadGameButton;
-    private TextButton scoreBoardButton;
-    private TextButton logoutButton;
-    private TextButton helpButton;
-
-    private Image userPicture;
-    private Label userStats;
+    private Stage uiStage;
+    private Skin skin;
 
     public MainMenuScreen() {
         super();
-        addInputProcessor(ui);
+        this.uiStage = new Stage(new ScreenViewport());
+        this.skin = GameAPI.getAssetManager().getSkin();
+        addInputProcessor(uiStage);
         setupUI();
     }
 
-    public void setupUI(){
-        Table root = new Table();
-        root.setFillParent(true);
-        root.center();
+    public void setupUI() {
+        User currentUser = GameAPI.getUserRegistry().getActiveUser();
+        if (currentUser == null) {
+            Gdx.app.error("MainMenuScreen", "Critical: Active user is null.");
+            return;
+        }
 
-        settingsButton = new TextButton("Settings", skin);
+        Table rootTable = new Table();
+        rootTable.setFillParent(true);
+        rootTable.center();
+        rootTable.pad(20f);
 
-        profileButton = new TextButton("Profile", skin);
-        profileButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                if (GameAPI.getUserRegistry().getActiveUser().getUsername().equals("Guest")) return;
+        Table userInfoTable = new Table(skin);
+        userInfoTable.setBackground(skin.newDrawable("white", new Color(0.2f, 0.2f, 0.2f, 0.5f)));
+        userInfoTable.pad(10f);
 
-                GameMain gameMain = GameMain.getInstance();
-                gameMain.changeScreen(
-                    new ProfileMenuScreen(),
-                    new BlendingTransition(gameMain.getSpriteBatch(), 1F, Interpolation.pow2In)
-                );
-            }
-        });
+        Image userPicture = new Image(GameAPI.getAssetManager().getAvatar(currentUser.getAvatar()));
+        Label userStatsLabel = new Label(String.format("%s\nScore: %d", currentUser.getUsername(), currentUser.getData().getTotalPoints()), skin);
+        userStatsLabel.setAlignment(Align.left);
 
-        newGameButton = new TextButton("New Game", skin);
+        userInfoTable.add(userPicture).size(64, 64).padRight(15f);
+        userInfoTable.add(userStatsLabel).expandX().left();
+
+        rootTable.add(userInfoTable).prefWidth(350f).padBottom(30f).row();
+
+        Table menuButtonsTable = new Table();
+        menuButtonsTable.defaults().pad(8f).width(300f).fillX();
+
+        TextButton newGameButton = new TextButton("New Game", skin);
         newGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                GameMain gameMain = GameMain.getInstance();
-                gameMain.changeScreen(
+                GameMain.getInstance().changeScreen(
                     new NewGameScreen(),
-                    new BlendingTransition(gameMain.getSpriteBatch(), 1F, Interpolation.pow2In)
+                    new BlendingTransition(GameMain.getInstance().getSpriteBatch(), 1F, Interpolation.pow2In)
                 );
             }
         });
 
-        loadGameButton = new TextButton("Load Game", skin);
+        TextButton loadGameButton = new TextButton("Load Game", skin);
 
-        helpButton = new TextButton("Hint Menu", skin);
-
-        scoreBoardButton = new TextButton("Scoreboard", skin);
+        TextButton scoreBoardButton = new TextButton("Scoreboard", skin);
         scoreBoardButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                GameMain gameMain = GameMain.getInstance();
-                gameMain.changeScreen(
+                GameMain.getInstance().changeScreen(
                     new ScoreBoardMenuScreen(),
-                    new BlendingTransition(gameMain.getSpriteBatch(), 1F, Interpolation.pow2In)
+                    new BlendingTransition(GameMain.getInstance().getSpriteBatch(), 1F, Interpolation.pow2In)
                 );
             }
         });
 
-        logoutButton = new TextButton("Logout", skin);
+        TextButton profileButton = new TextButton("Profile", skin);
+        if (currentUser.getUsername().equalsIgnoreCase("Guest")) {
+            profileButton.setDisabled(true);
+        } else {
+            profileButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    GameMain.getInstance().changeScreen(
+                        new ProfileMenuScreen(),
+                        new BlendingTransition(GameMain.getInstance().getSpriteBatch(), 1F, Interpolation.pow2In)
+                    );
+                }
+            });
+        }
 
-        User user = GameAPI.getUserRegistry().getActiveUser();
-//        userPicture = new Image();
-        userStats = new Label(String.format("Name: %s\nPoints: %d", user.getUsername(), user.getData().getTotalPoints()), skin);
+        TextButton settingsButton = new TextButton("Settings", skin);
 
+        TextButton helpButton = new TextButton("Help/Hints", skin);
 
-        Table mainTable = new Table();
-        mainTable.setWidth(400);
-        mainTable.defaults().pad(5);
-        mainTable.setBackground(skin.newDrawable("white", Color.DARK_GRAY));
+        TextButton logoutButton = new TextButton("Logout", skin);
+        logoutButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                GameAPI.getUserRegistry().setActiveUser(null);
+                GameMain.getInstance().changeScreen(
+                    new RegisterMenuScreen(),
+                    new BlendingTransition(GameMain.getInstance().getSpriteBatch(), 1F, Interpolation.pow2In)
+                );
+            }
+        });
 
-        mainTable.add(settingsButton);
-        mainTable.add(profileButton);
-        mainTable.add(newGameButton);
-        mainTable.add(loadGameButton);
-        mainTable.add(scoreBoardButton);
-        mainTable.add(helpButton);
-        mainTable.add(logoutButton);
+        menuButtonsTable.add(newGameButton).row();
+        menuButtonsTable.add(loadGameButton).row();
+        menuButtonsTable.add(scoreBoardButton).row();
+        menuButtonsTable.add(profileButton).row();
+        menuButtonsTable.add(settingsButton).row();
+        menuButtonsTable.add(helpButton).row();
+        menuButtonsTable.add(logoutButton).row();
 
-        root.add(userPicture);
-        root.add(userStats);
+        rootTable.add(menuButtonsTable).row();
 
-
-        root.add(mainTable);
-        ui.addActor(root);
+        uiStage.addActor(rootTable);
     }
-
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.706f * 0.25f, 0.851f * 0.25f, 0.847f * 0.25f, 1);
+        Gdx.gl.glClearColor(0.1765f, 0.21275f, 0.21175f, 1f);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 
-        ui.getViewport().apply();
-        ui.act(delta);
-        ui.draw();
+        uiStage.getViewport().apply();
+        uiStage.act(delta);
+        uiStage.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-        ui.getViewport().update(width, height, true);
+        if (uiStage != null) {
+            uiStage.getViewport().update(width, height, true);
+        }
     }
-
 
     @Override
     public void dispose() {
-
+        if (uiStage != null) {
+            uiStage.dispose();
+        }
     }
 }

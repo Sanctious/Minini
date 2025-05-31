@@ -14,7 +14,7 @@ public class Player extends MovableObject{
     private float health;
     private boolean facing = false; // false == left
     private float xp = 0;
-    private int level = 0;
+    private int level = 1;
     private int kills = 0;
     private final float invincibilityDuration = 2f;
     private float invincibilityTimer = 0;
@@ -49,7 +49,6 @@ public class Player extends MovableObject{
         }
 
         this.health -= amount;
-        System.out.println(health);
     }
 
     public boolean isDead(){
@@ -132,6 +131,14 @@ public class Player extends MovableObject{
         this.damageBoostTimer = damageBoostTimer;
     }
 
+    public float getSpeedBoostTimer() {
+        return speedBoostTimer;
+    }
+
+    public float getDamageBoostTimer() {
+        return damageBoostTimer;
+    }
+
     public boolean hasDamageBoost(){
         return damageBoostTimer > 0;
     }
@@ -154,5 +161,9 @@ public class Player extends MovableObject{
 
     public void incrementKills(){
         this.kills++;
+    }
+
+    public float getXPToNextLevel(){
+        return this.level * 20;
     }
 }

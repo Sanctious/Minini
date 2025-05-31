@@ -18,12 +18,13 @@ import de.eskalon.commons.screen.ManagedScreen;
 import de.eskalon.commons.screen.transition.impl.BlendingTransition;
 import sanctious.minini.Controllers.Controllers;
 import sanctious.minini.GameMain;
+import sanctious.minini.Models.GameAPI;
 import sanctious.minini.Models.ViewResult;
 
 public class LoginMenuScreen extends ManagedScreen {
 
     private final Stage ui = new Stage(new ExtendViewport(1920, 1080));
-    Skin skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+    Skin skin = GameAPI.getAssetManager().getSkin();
 
     private float delay = 1.2f;
 
