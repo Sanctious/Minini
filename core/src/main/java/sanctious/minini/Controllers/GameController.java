@@ -9,17 +9,18 @@
     import com.badlogic.gdx.math.MathUtils;
     import com.badlogic.gdx.math.Rectangle;
     import com.badlogic.gdx.math.Vector2;
-    import org.w3c.dom.Text;
     import sanctious.minini.Models.Game.*;
     import sanctious.minini.Models.Game.Enemies.*;
+    import sanctious.minini.Models.GameAPI;
     import sanctious.minini.Models.PlayerState;
-    import sanctious.minini.Models.Upgrades;
+    import sanctious.minini.Models.Upgrade;
+    import sanctious.minini.Models.ViewResult;
     import sanctious.minini.View.EnemyRenderer;
     import sanctious.minini.View.GameScreen;
     import sanctious.minini.View.PlayerRenderer;
 
-    import java.awt.event.KeyEvent;
     import java.util.ArrayList;
+    import java.util.Comparator;
     import java.util.List;
 
     public class GameController implements InputProcessor {
@@ -31,6 +32,7 @@
 
         private float bossMonsterSpawnTimer = 0f;
         private float bossMonsterSpawnInterval = 100f;
+        private boolean spawnBoss = false;
 
         private final Texture bulletTexture = new Texture(Gdx.files.internal("hit/T_Shotgun_SS_1.png"));
         // TODO proper usage for these ??
@@ -74,26 +76,48 @@
             }
         }
 
-        public void applyUpgrade(Player player, Upgrades upgrade){
+        public void applyUpgrade(Player player, Upgrade upgrade){
+            WeaponType weaponType = player.getActiveWeapon().getType();
+
             switch (upgrade){
                 case Vitality -> {
-
+                    player.setMaxHealth(player.getMaxHealth() + 1);
                 }
                 case Procrease -> {
-
+                    weaponType.setNumBullets(weaponType.getNumBullets() + 1);
                 }
                 case Speedy -> {
-
+                    player.setSpeedBoostTimer(10);
                 }
                 case Amocrease -> {
-
+                    weaponType.setMaxClipSize(weaponType.getMaxClipSize() + 5);
                 }
                 case Damager -> {
-
+                    player.setDamageBoostTimer(10);
                 }
             }
         }
 
+
+        public void increasePlayerHealth(Player player, int amount){
+            player.addHealth(amount);
+        }
+
+        public void autoAim(Player player){
+            Enemy closestEnemy = enemies.stream().sorted(new Comparator<Enemy>() {
+                @Override
+                public int compare(Enemy e1, Enemy e2) {
+                    return -Float.compare(
+                        e1.getPosition().cpy().sub(player.getPosition()).len2(),
+                        e2.getPosition().cpy().sub(player.getPosition()).len2()
+                    );
+                }})
+                .findFirst().orElseGet(null);
+
+            if (closestEnemy != null){
+                // stuff here
+            }
+        }
 
         public void updatePlayerPosition(Player player, float delta){
             Vector2 input = new Vector2();
@@ -107,15 +131,15 @@
             if (input.x == -1) player.setFacing(false);
             else if (input.x == 1) player.setFacing(true);
 
-
+            float speedModifier = player.hasSpeedBoost() ? 2 : 1;
             player.setState(PlayerState.Idling);
             player.setSpeed(0f);
             if (input.len2() > 0) {
                 player.setState(PlayerState.Walking);
-                player.setSpeed(player.getDefaultSpeed());
+                player.setSpeed(player.getDefaultSpeed() * speedModifier);
                 if (running) {
                     player.setState(PlayerState.Running);
-                    player.setSpeed(player.getDefaultSpeed() * 1.5f);
+                    player.setSpeed(player.getDefaultSpeed() * 1.5f * speedModifier);
                 }
                 player.setDirVector(input);
             }
@@ -232,13 +256,15 @@
                         if (enemy.isDead()) continue;
 
                         removeBullets.add(bullet);
-                        enemy.modifyHealth(-bullet.getWeaponType().getDamage());
+                        float damageModifier = player.hasDamageBoost() ? 1.25f : 1f;
+                        enemy.modifyHealth(-bullet.getWeaponType().getDamage() *  damageModifier);
                         // knockback
                         enemy.getPosition().add(bullet.getDirVector().cpy().scl(1f));
 
                         if (enemy.isDead()) {
                             // drop stuff here
                             spawnXPPoints(enemy.getPosition(), 5f);
+                            player.incrementKills();
                             removeEnemies.add(enemy);
                         }
                     }
@@ -327,8 +353,9 @@
                 }
             }
 
-            if (bossMonsterSpawnTimer >= 2f){ //bossMonsterSpawnInterval && passedTime >= gameDuration/2){
+            if ((bossMonsterSpawnTimer >= bossMonsterSpawnInterval && passedTime >= gameDuration/2) || spawnBoss){
                 bossMonsterSpawnTimer = 0;
+                spawnBoss = false;
                 float radius = 20f;
                 float angle = MathUtils.random(0f, 360f);
 
@@ -352,6 +379,23 @@
 
                 xps.add(xp);
             }
+        }
+
+        public ViewResult<Void> checkGameFinished(float gameDuration, float passedTime, Player player){
+            if (player.getHealth() <= 0 ||
+                passedTime >= gameDuration){
+
+                // Finish logic here
+                GameAPI.getUserRegistry().getActiveUser().getData().modifyKills(player.getKills());
+
+                return ViewResult.empty(true);
+            }
+
+            return ViewResult.empty(false);
+        }
+
+        public void spawnBoss(){
+            spawnBoss = true;
         }
 
 

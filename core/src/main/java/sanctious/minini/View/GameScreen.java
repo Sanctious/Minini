@@ -36,6 +36,7 @@ public class GameScreen extends ManagedScreen {
     // TODO ?? what to do ??
     private Weapon weapon = new Weapon(WeaponType.SMG);
     private Player player = new Player(20f, 5f);
+    private final float gameDuration;
     private float passedTime = 0f;
 
     {
@@ -49,6 +50,10 @@ public class GameScreen extends ManagedScreen {
 
     private Texture texture;
     private PointLight pointLight;
+
+    public GameScreen(float gameDuration){
+        this.gameDuration = gameDuration;
+    }
 
     @Override
     public void show() {
@@ -87,6 +92,10 @@ public class GameScreen extends ManagedScreen {
 
     @Override
     public void render(float delta) {
+        //Render light
+        rayHandler.setCombinedMatrix(camera);
+        rayHandler.updateAndRender();
+
         passedTime += delta;
         GameController controller = Controllers.getGameController();
         // Weapon rendering
@@ -105,6 +114,7 @@ public class GameScreen extends ManagedScreen {
         // Handle shooting
         checkShooting(controller);
         checkReloading(controller);
+        checkCheatCodes(controller);
 
         controller.updateBullets(delta);
         controller.updateEnemies(player, delta);
@@ -147,8 +157,6 @@ public class GameScreen extends ManagedScreen {
         batch.end();
 
 
-        rayHandler.setCombinedMatrix(camera);
-        rayHandler.updateAndRender();
 
     }
 
@@ -267,6 +275,21 @@ public class GameScreen extends ManagedScreen {
 
     }
 
+    public void checkCheatCodes(GameController controller){
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)){
+            passedTime += 60;
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)){
+            controller.addXpToPlayer(player, player.getLevel()*20);
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)){
+            controller.increasePlayerHealth(player, 1);
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)){
+            controller.spawnBoss();
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)){
+            player.setMaxHealth(player.getMaxHealth()*2);
+        }
+
+    }
+
 
     public void renderBullets(List<Bullet> bullets, SpriteBatch batch){
         for (Bullet b : bullets) {
@@ -326,5 +349,13 @@ public class GameScreen extends ManagedScreen {
         rayHandler.dispose();
         world.dispose();
         texture.dispose();
+    }
+
+    public float getPassedTime() {
+        return passedTime;
+    }
+
+    public void setPassedTime(float passedTime) {
+        this.passedTime = passedTime;
     }
 }

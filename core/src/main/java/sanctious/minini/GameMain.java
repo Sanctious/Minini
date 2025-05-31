@@ -41,7 +41,7 @@ public class GameMain extends ManagedGame<ManagedScreen, ScreenTransition> {
 //        this.screenManager.pushScreen(new RegisterMenuScreen(),
 //            new BlendingTransition(spriteBatch, 1F, Interpolation.pow2In));
 
-        this.screenManager.pushScreen(new GameScreen(),
+        this.screenManager.pushScreen(new GameScreen(3 * 60),
             null);
 
         Gdx.app.debug("Game", "Initialization finished.");

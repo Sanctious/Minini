@@ -38,4 +38,12 @@ public enum WeaponType {
     public int getNumBullets() {
         return numBullets;
     }
+
+    public void setMaxClipSize(int maxClipSize) {
+        this.maxClipSize = maxClipSize;
+    }
+
+    public void setNumBullets(int numBullets) {
+        this.numBullets = numBullets;
+    }
 }

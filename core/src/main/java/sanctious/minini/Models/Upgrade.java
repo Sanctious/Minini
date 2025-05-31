@@ -2,7 +2,7 @@ package sanctious.minini.Models;
 
 import com.badlogic.gdx.math.MathUtils;
 
-public enum Upgrades {
+public enum Upgrade {
     Vitality,
     Damager,
     Procrease,
@@ -10,7 +10,7 @@ public enum Upgrades {
     Speedy,
     ;
 
-    public static Upgrades getRandomUpgrade() {
+    public static Upgrade getRandomUpgrade() {
         return values()[MathUtils.random.nextInt(values().length)];
     }
 }

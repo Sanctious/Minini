@@ -1,6 +1,10 @@
 package sanctious.minini.Models.Game;
 
 import sanctious.minini.Models.PlayerState;
+import sanctious.minini.Models.Upgrade;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Player extends MovableObject{
     private PlayerState state = PlayerState.Idling;
@@ -11,8 +15,13 @@ public class Player extends MovableObject{
     private boolean facing = false; // false == left
     private float xp = 0;
     private int level = 0;
+    private int kills = 0;
     private final float invincibilityDuration = 2f;
     private float invincibilityTimer = 0;
+    private List<Upgrade> upgrades = new ArrayList<>();
+
+    private float speedBoostTimer = 0;
+    private float damageBoostTimer = 0;
 
     public Player(float health, float defaultSpeed) {
         this.maxHealth = health;
@@ -23,6 +32,11 @@ public class Player extends MovableObject{
     @Override
     public void update(float delta) {
         super.update(delta);
+
+        if (speedBoostTimer != 0) speedBoostTimer -= delta;
+        if (speedBoostTimer < 0) speedBoostTimer = 0;
+        if (damageBoostTimer != 0) damageBoostTimer -= delta;
+        if (damageBoostTimer< 0) damageBoostTimer = 0;
 
         if (invincibilityTimer != 0) invincibilityTimer -= delta;
         if (invincibilityTimer < 0) invincibilityTimer = 0;
@@ -104,5 +118,41 @@ public class Player extends MovableObject{
 
     public float getDefaultSpeed() {
         return defaultSpeed;
+    }
+
+    public void addUpgrade(Upgrade upgrade){
+        this.upgrades.add(upgrade);
+    }
+
+    public void setSpeedBoostTimer(float speedBoostTimer) {
+        this.speedBoostTimer = speedBoostTimer;
+    }
+
+    public void setDamageBoostTimer(float damageBoostTimer) {
+        this.damageBoostTimer = damageBoostTimer;
+    }
+
+    public boolean hasDamageBoost(){
+        return damageBoostTimer > 0;
+    }
+
+    public boolean hasSpeedBoost(){
+        return speedBoostTimer > 0;
+    }
+
+    public float getHealth() {
+        return health;
+    }
+
+    public void addHealth(float amount){
+        this.health = Math.min(health + amount, maxHealth);
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public void incrementKills(){
+        this.kills++;
     }
 }

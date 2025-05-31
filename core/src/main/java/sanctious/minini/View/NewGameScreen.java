@@ -53,10 +53,10 @@ public class NewGameScreen extends ManagedScreen {
 
         SelectBox<Option<Integer>> time = new SelectBox<Option<Integer>>(skin);
         time.setItems(
-            new Option<>("2 Minutes", 2),
-            new Option<>("5 Minutes", 5),
-            new Option<>("10 Minutes", 10),
-            new Option<>("20 Minutes", 20)
+            new Option<>("2 Minutes", 2 * 60),
+            new Option<>("5 Minutes", 5 * 60),
+            new Option<>("10 Minutes", 10 * 60),
+            new Option<>("20 Minutes", 20 * 60)
         );
 
         TextButton play = new TextButton("Play", skin);
@@ -65,7 +65,7 @@ public class NewGameScreen extends ManagedScreen {
             public void clicked(InputEvent event, float x, float y) {
                 GameMain gameMain = GameMain.getInstance();
                 gameMain.changeScreen(
-                    new GameScreen(),
+                    new GameScreen(time.getSelected().getValue()),
                     null
                 );
             }

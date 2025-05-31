@@ -9,7 +9,23 @@ public class UserScores {
         return totalPoints;
     }
 
+    public int getTotalKills() {
+        return totalKills;
+    }
+
     public void modifyTotalPoints(int value){
         this.totalPoints += value;
+    }
+
+    public void modifyKills(int amount){
+        this.totalKills += amount;
+    }
+
+    public int getMaxSurviveSeconds() {
+        return maxSurviveSeconds;
+    }
+
+    public void setMaxSurviveSeconds(int maxSurviveSeconds) {
+        this.maxSurviveSeconds = maxSurviveSeconds;
     }
 }

@@ -1,8 +1,8 @@
 package sanctious.minini.View;
 
 public class Option<T> {
-    public final String displayText;
-    public final T value;
+    private final String displayText;
+    private final T value;
 
     public Option(String displayText, T value) {
         this.displayText = displayText;
@@ -12,6 +12,14 @@ public class Option<T> {
     @Override
     public String toString() {
         return displayText;
+    }
+
+    public String getDisplayText() {
+        return displayText;
+    }
+
+    public T getValue() {
+        return value;
     }
 }
 

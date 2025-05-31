@@ -1,5 +1,7 @@
 package sanctious.minini.View;
 
+
+import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
@@ -7,16 +9,21 @@ import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 import de.eskalon.commons.screen.ManagedScreen;
 import de.eskalon.commons.screen.transition.impl.BlendingTransition;
 import sanctious.minini.GameMain;
 import sanctious.minini.Models.GameAPI;
 import sanctious.minini.Models.User;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class ScoreBoardMenuScreen extends ManagedScreen {
     private Stage ui = new Stage(new ScreenViewport());
@@ -90,15 +97,31 @@ public class ScoreBoardMenuScreen extends ManagedScreen {
     }
 
     public void updateScoreBoard(String sortMethod){
+        List<User> users = new ArrayList<>();
         switch(sortMethod){
             case "username": {
-
+                users.sort(new Comparator<User>() {
+                    @Override
+                    public int compare(User u1, User u2) {
+                        return u1.getUsername().compareTo(u2.getUsername());
+                    }
+                });
             }
             case "kills": {
-
+                users.sort(new Comparator<User>() {
+                    @Override
+                    public int compare(User u1, User u2) {
+                        return Integer.compare(u1.getData().getTotalKills(), u2.getData().getTotalKills());
+                    }
+                });
             }
             case "money": {
-
+                users.sort(new Comparator<User>() {
+                    @Override
+                    public int compare(User u1, User u2) {
+                        return Integer.compare(u1.getData().getMaxSurviveSeconds(), u2.getData().getMaxSurviveSeconds());
+                    }
+                });
             }
         }
 
@@ -123,4 +146,6 @@ public class ScoreBoardMenuScreen extends ManagedScreen {
     public void dispose() {
 
     }
+
+
 }
