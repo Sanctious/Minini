@@ -2,13 +2,15 @@ package sanctious.minini.Models;
 
 public class User {
     private String username;
+    private String securityQuestion;
     private String password;
     private String avatar;
     private UserScores data = new UserScores();
 
-    public User(String username, String password) {
+    public User(String username, String password, String securityQuestion) {
         this.username = username;
         this.password = password;
+        this.securityQuestion = securityQuestion;
     }
 
     public String getUsername() {

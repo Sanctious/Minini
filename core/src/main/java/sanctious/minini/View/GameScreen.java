@@ -41,7 +41,7 @@ public class GameScreen extends ManagedScreen {
     {
         player.setActiveWeapon(weapon);
     }
-    private PlayerRenderer playerRenderer = new PlayerRenderer(new TextureAtlas(Gdx.files.internal("Shanker.atlas")));
+    private PlayerRenderer playerRenderer = new PlayerRenderer(new TextureAtlas(Gdx.files.internal("heroes/Lilith.atlas")));
     private Texture cursorTexture = new Texture(Gdx.files.internal("hit/T_HitMarkerFX_0.png"));
     public static Texture xpTexture = new Texture(Gdx.files.internal("enemies/T_DiamondFilled.png"));
     private Texture weaponTexture = new Texture(Gdx.files.internal("hit/T_Shotgun_SS_0.png"));
@@ -110,7 +110,7 @@ public class GameScreen extends ManagedScreen {
         controller.updateEnemies(player, delta);
         controller.checkCollisions(player, playerRenderer);
         controller.updatePlayerPosition(player, delta);
-        controller.trySpawnEnemies(player, delta);
+        controller.trySpawnEnemies(player, passedTime, 300, delta);// fix this
 
 //        for (Bullet b : bullets) b.update(delta);
 
@@ -140,7 +140,7 @@ public class GameScreen extends ManagedScreen {
         renderEnemies(controller.getEnemies(), batch, delta);
         drawCustomCursor(batch);
         drawWeapon(batch);
-        playerRenderer.render(batch, player, passedTime);
+        playerRenderer.render(batch, player, delta, passedTime);
         batch.draw(texture,
             400 / PPM - 50 / PPM, 300 / PPM - 50 / PPM,
             100 / PPM, 100 / PPM);
@@ -153,7 +153,7 @@ public class GameScreen extends ManagedScreen {
     }
 
     public void checkShooting(GameController controller){
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             Vector2 mouseWorld = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
             controller.shoot(player, mouseWorld);
         }

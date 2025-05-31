@@ -79,7 +79,9 @@ public class RegisterMenuScreen extends ManagedScreen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 ViewResult<Void> result = Controllers.getRegisterController().register(
-                    usernameField.getText(), passwordField.getText());
+                    usernameField.getText(),
+                    passwordField.getText(),
+                    securityQuestionField.getText());
                 if (!result.isSuccess()) {
                     label.setVisible(true);
                     label.restart();

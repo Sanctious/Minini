@@ -28,6 +28,7 @@ public class MainMenuScreen extends ManagedScreen {
     private TextButton loadGameButton;
     private TextButton scoreBoardButton;
     private TextButton logoutButton;
+    private TextButton helpButton;
 
     private Image userPicture;
     private Label userStats;
@@ -73,6 +74,8 @@ public class MainMenuScreen extends ManagedScreen {
 
         loadGameButton = new TextButton("Load Game", skin);
 
+        helpButton = new TextButton("Hint Menu", skin);
+
         scoreBoardButton = new TextButton("Scoreboard", skin);
         scoreBoardButton.addListener(new ClickListener() {
             @Override
@@ -102,6 +105,7 @@ public class MainMenuScreen extends ManagedScreen {
         mainTable.add(newGameButton);
         mainTable.add(loadGameButton);
         mainTable.add(scoreBoardButton);
+        mainTable.add(helpButton);
         mainTable.add(logoutButton);
 
         root.add(userPicture);

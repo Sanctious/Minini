@@ -3,12 +3,17 @@ package sanctious.minini.View;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.rafaskoberg.gdx.typinglabel.TypingLabel;
 import de.eskalon.commons.screen.ManagedScreen;
+import de.eskalon.commons.screen.transition.impl.BlendingTransition;
 import org.w3c.dom.Text;
+import sanctious.minini.GameMain;
 import sanctious.minini.Models.GameAPI;
 import sanctious.minini.Models.User;
 
@@ -32,6 +37,12 @@ public class ProfileMenuScreen extends ManagedScreen {
         TextField username = new TextField(user.getUsername(), skin);
         TextField password = new TextField(user.getPassword(), skin);
         TextButton showPassword = new TextButton("Show", skin);
+        showPassword.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                password.setPasswordMode(false);
+            }
+        });
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
         SelectBox<Option<String>> avatars = new SelectBox<Option<String>>(skin);

@@ -11,10 +11,12 @@ public class Enemy extends MovableObject {
     protected float health;
     protected EnemyState state;
     protected EnemyRenderer renderer = null;
+    protected float damage;
 
-    public Enemy(Vector2 position) {
+    public Enemy(Vector2 position, float damage) {
         this.position = position;
         this.state = EnemyState.Idling;
+        this.damage = damage;
     }
 
     public void setRenderer(EnemyRenderer renderer) {
@@ -44,5 +46,13 @@ public class Enemy extends MovableObject {
 
     public boolean isDead(){
         return health <= 0;
+    }
+
+    public boolean getFacing(){
+        return dirVector.x >= 0;
+    }
+
+    public float getDamage() {
+        return damage;
     }
 }

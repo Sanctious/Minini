@@ -36,6 +36,14 @@ public class EnemyRenderer {
 //            default -> null;
 //        };
 
+        boolean facingRight = enemy.getFacing();
+
+        if (facingRight && frame.isFlipX()) {
+            frame.flip(true, false);
+        } else if (!facingRight && !frame.isFlipX()) {
+            frame.flip(true, false);
+        }
+
         float scale = 0.03f;
         float spriteWidth = frame.getRegionWidth() * scale;
         float spriteHeight = frame.getRegionHeight() * scale;

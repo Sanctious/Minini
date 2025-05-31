@@ -8,17 +8,20 @@ import sanctious.minini.View.GameScreen;
 public class Bullet extends MovableObject{
     private final WeaponType weaponType;
     private final Sprite renderSprite;
+    private final MovableObject shooter;
 
 
     public Bullet(Vector2 start,
                   Vector2 direction,
                   Texture renderTexture,
-                  WeaponType weaponType) {
+                  WeaponType weaponType,
+                  MovableObject shooter) {
         this.speed = 25f;
         this.position = start.cpy();
         this.dirVector = direction.nor().scl(speed);
         this.renderSprite = new Sprite(renderTexture);
         this.weaponType = weaponType;
+        this.shooter = shooter;
 
 
 //        float width = renderTexture.getWidth() / GameScreen.PPM;
@@ -45,5 +48,9 @@ public class Bullet extends MovableObject{
         super.update(delta);
         renderSprite.setRotation(renderSprite.getRotation() + 100f * delta);
         renderSprite.setPosition(this.position.x, this.position.y);
+    }
+
+    public MovableObject getShooter() {
+        return shooter;
     }
 }

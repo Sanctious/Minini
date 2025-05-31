@@ -9,6 +9,8 @@ public class Weapon {
     private float reloadTimer = 0f;
     private boolean reloading = false;
 
+    private float fireRateTimer = 0f;
+
     public Weapon(WeaponType type) {
         this.type = type;
         this.maxClipSize = type.getMaxClipSize();
@@ -23,6 +25,9 @@ public class Weapon {
                 finishReload();
             }
         }
+        if (fireRateTimer > 0) {
+            fireRateTimer -= delta;
+        }
     }
 
     public boolean isClipFull(){
@@ -30,9 +35,10 @@ public class Weapon {
     }
 
     public boolean tryShoot() {
-        if (reloading) return false;
+        if (reloading || fireRateTimer > 0) return false;
         if (ammoInClip > 0) {
             ammoInClip--;
+            fireRateTimer = 1f / type.getFireRate();
             return true;
         } else {
             startReload();

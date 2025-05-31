@@ -6,6 +6,7 @@ public class Player extends MovableObject{
     private PlayerState state = PlayerState.Idling;
     private final float defaultSpeed;
     private Weapon activeWeapon;
+    private float maxHealth;
     private float health;
     private boolean facing = false; // false == left
     private float xp = 0;
@@ -14,7 +15,8 @@ public class Player extends MovableObject{
     private float invincibilityTimer = 0;
 
     public Player(float health, float defaultSpeed) {
-        this.health = health;
+        this.maxHealth = health;
+        this.health = maxHealth;
         this.defaultSpeed = defaultSpeed;
     }
 
@@ -33,6 +35,7 @@ public class Player extends MovableObject{
         }
 
         this.health -= amount;
+        System.out.println(health);
     }
 
     public boolean isDead(){
@@ -67,8 +70,20 @@ public class Player extends MovableObject{
         this.xp += amount;
     }
 
-    public float getXp() {
+    public float getXP() {
         return xp;
+    }
+
+    public void setXP(float xp) {
+        this.xp = xp;
+    }
+
+    public float getMaxHealth() {
+        return maxHealth;
+    }
+
+    public void setMaxHealth(float maxHealth) {
+        this.maxHealth = maxHealth;
     }
 
     public void increaseLevel(){
@@ -83,6 +98,9 @@ public class Player extends MovableObject{
         this.level = level;
     }
 
+    public boolean isInvincible(){
+        return invincibilityTimer > 0;
+    }
 
     public float getDefaultSpeed() {
         return defaultSpeed;

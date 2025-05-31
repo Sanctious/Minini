@@ -33,7 +33,7 @@ public class GameMain extends ManagedGame<ManagedScreen, ScreenTransition> {
     @Override
     public void create() {
         super.create();
-        Controllers.getRegisterController().register("Guest", "Asd123@32!");
+        Controllers.getRegisterController().register("Guest", "Asd123@32!", "sUS");
 
         spriteBatch = new SpriteBatch();
         this.screenManager.setAutoDispose(true, true);

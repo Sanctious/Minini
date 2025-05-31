@@ -15,7 +15,8 @@ public class RegisterMenuController {
     }
 
     public ViewResult<Void> register(String username,
-                                      String password){
+                                     String password,
+                                     String securityQuestion){
         if (GameAPI.getUserRegistry().userExists(username)) {
             return ViewResult.failure("This user already exists!");
         }
@@ -23,7 +24,7 @@ public class RegisterMenuController {
             return ViewResult.failure("Your password isn't strong enough!");
         }
 
-        User user = new User(username, password);
+        User user = new User(username, password, securityQuestion);
 
         GameAPI.getUserRegistry().addUser(user);
 
